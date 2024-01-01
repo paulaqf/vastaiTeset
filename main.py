@@ -40,9 +40,9 @@ def job_wallapop():
 def main():
     # Run the jobs once immediately
     job_vastai()
-    job_pccomponentes()
-    job_luz()
-    job_wallapop()
+    # job_pccomponentes()
+    # job_luz()
+    # job_wallapop()
     
 
     # Schedule the jobs

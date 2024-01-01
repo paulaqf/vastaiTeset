@@ -1,6 +1,5 @@
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
@@ -8,7 +7,12 @@ from datetime import datetime, timedelta, timezone
 import requests
 import json
 from urllib.parse import urlparse, unquote
-import re
+import time
+
+from selenium.webdriver.chrome.options import Options
+options = Options()
+options.add_argument("--headless")
+options.add_argument("window-size=1400,1500")
 
 def scrape_pccomponentes(url):
     # Parse the URL to get the component type
@@ -18,7 +22,7 @@ def scrape_pccomponentes(url):
     print(f"Scraping {component_type}...")
 
     # Initialize the webdriver
-    driver = webdriver.Firefox()  # Make sure you have the Firefox driver in your PATH
+    driver = webdriver.Chrome(options=options)  # Make sure you have the Firefox driver in your PATH
 
     # Navigate to the new URL
     print("     - Opening browser...")
@@ -72,7 +76,7 @@ def scrape_vastai():
     url = "https://cloud.vast.ai/"
     # Create a new instance of the Firefox driver
     print("Opening browser...")
-    driver = webdriver.Firefox()
+    driver = webdriver.Chrome(options=options)
 
     # Go to the URL
     driver.get(url)
@@ -94,25 +98,18 @@ def scrape_vastai():
     # Wait for the page to update after selecting the dropdown value
     WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".machine-row")))
 
+    # Refresh the dropdowns
+    dropdowns = WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".MuiFormControl-root.css-vc1rr1")))
 
     # Select the second dropdown
     dropdown = dropdowns[1]
-
-    # Create an action chain
-    actions = ActionChains(driver)
-
-    # Move to the dropdown element and click it
-    actions.move_to_element(dropdown).click().perform()
+    dropdown.click()
 
     # Wait for the dropdown menu to open and then select 'RTX 4090'
     rtx_4090_option = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//li[@data-value='RTX 4090']")))
+    time.sleep(1)
     rtx_4090_option.click()
-
-    # Refresh the page
-    driver.refresh()
-
-    # Wait for the page to update after refreshing
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".machine-row")))
+    time.sleep(5)
 
     # Get the HTML of the webpage
     html = driver.page_source
@@ -136,7 +133,7 @@ def scrape_vastai():
 def scrape_wallapop():
     url = "https://es.wallapop.com/app/search?filters_source=quick_filters&keywords=rtx%204090&latitude=40.96427&longitude=-5.66385&order_by=price_low_to_high&min_sale_price=1250"
 
-    driver = webdriver.Firefox()
+    driver = webdriver.Chrome(options=options)
     driver.get(url)
 
     wait = WebDriverWait(driver, 10)
@@ -173,7 +170,7 @@ def scrape_luz():
     url = "https://tarifaluzhora.es/"
 
     # Initialize the webdriver
-    driver = webdriver.Firefox()  # Make sure you have the Firefox driver in your PATH
+    driver = webdriver.Chrome(options=options)  # Make sure you have the Firefox driver in your PATH
 
     # Navigate to the URL
     driver.get(url)
