@@ -1,0 +1,9 @@
+SELECT 
+  A, B
+FROM
+  (SELECT min("Price")*$FeeVastai*$IRPF*24*30*$Nmaquinas*($Ocupacion/100)-$Autonomos as A FROM "scraping_vastai" WHERE $timeFilter GROUP BY time($Intervalo)),
+  (SELECT mean("Precio")*260*($Ocupacion/100)*$Nmaquinas as B FROM "precioLuz"  WHERE $timeFilter GROUP BY time($Intervalo) fill(previous))
+
+SELECT * FROM 
+    (SELECT min("Price")*$FeeVastai*$IRPF*24*30*$Nmaquinas*($Ocupacion/100)-$Autonomos as Ingresos FROM "scraping_vastai" WHERE $timeFilter GROUP BY time($Intervalo) fill(previous)),
+    (SELECT mean("Precio")*260*($Ocupacion/100)*$Nmaquinas as Gastos FROM "precioLuz"  WHERE $timeFilter GROUP BY time($Intervalo) fill(previous))
