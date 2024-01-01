@@ -42,7 +42,7 @@ def scrape_pccomponentes(url):
         pass
 
     # Wait for the product grid to be present
-    products = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//*[@id="product-grid"]/div/a')))
+    products = wait.until(EC.visibility_of_all_elements_located((By.ID, 'product-grid')))
 
     # Initialize an empty list to store the product data
     product_list = []
