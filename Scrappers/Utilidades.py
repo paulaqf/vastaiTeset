@@ -13,6 +13,8 @@ from selenium.webdriver.chrome.options import Options
 options = Options()
 options.add_argument("--headless")
 options.add_argument("window-size=1400,1500")
+options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3")
+
 
 def scrape_pccomponentes(url):
     # Parse the URL to get the component type
@@ -30,16 +32,17 @@ def scrape_pccomponentes(url):
 
     # Wait until the page is fully loaded
     wait = WebDriverWait(driver, 10)
+    print("     - Waiting for page to load...")
 
     # Try to locate the cookie notice by its XPath and click on it if it exists
     try:
-        cookie_notice = wait.until(EC.element_to_be_clickable((By.XPATH, '/html/body/div[2]/div[3]/div/div[2]/div/div/button[3]/div')))
+        cookie_notice = wait.until(EC.element_to_be_clickable((By.ID, 'cookiesAcceptAll')))
         cookie_notice.click()
     except:
         pass
 
     # Wait for the product grid to be present
-    products = wait.until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="product-grid"]/div/a')))
+    products = wait.until(EC.visibility_of_all_elements_located((By.XPATH, '//*[@id="product-grid"]/div/a')))
 
     # Initialize an empty list to store the product data
     product_list = []
