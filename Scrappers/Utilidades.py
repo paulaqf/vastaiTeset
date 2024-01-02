@@ -2,8 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
-
+from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta, timezone
 import requests
@@ -11,7 +10,6 @@ import json
 from urllib.parse import urlparse, unquote
 import time
 
-from selenium.webdriver.chrome.options import Options
 options = Options()
 options.add_argument("--headless")
 options.add_argument("--disable-gpu")
@@ -89,6 +87,10 @@ def scrape_vastai():
     # Wait for the dropdowns to be present
     dropdowns = WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".MuiFormControl-root.css-vc1rr1")))
 
+    # Esperar a que se carguen las máquinas
+    WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".results-table")))
+    driver.execute_script("arguments[0].style.border='3px solid red'", driver.find_element(By.CSS_SELECTOR, ".results-table"))  # Highlight the element
+
     # Select the last dropdown
     dropdown = dropdowns[-1]
     driver.execute_script("arguments[0].style.border='3px solid red'", dropdown)  # Highlight the element
@@ -101,25 +103,38 @@ def scrape_vastai():
      # Wait for the dropdown menu to open and then select 'Price(inc.)'
     price_inc_option = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "li[data-value='price-asc']")))
     driver.execute_script("arguments[0].style.border='3px solid red'", price_inc_option)  # Highlight the element
+    old_content = driver.find_element(By.CSS_SELECTOR, ".results-table").get_attribute('innerHTML')
+
     price_inc_option.click()
+
+    # Define a function that checks if the content of the results-table has changed
+    def content_has_updated(driver):
+        driver.execute_script("arguments[0].style.border='3px solid red'", driver.find_element(By.CSS_SELECTOR, ".results-table"))  # Highlight the element
+        new_content = driver.find_element(By.CSS_SELECTOR, ".results-table").get_attribute('innerHTML')
+        driver.execute_script("arguments[0].style.border='3px solid green'", driver.find_element(By.CSS_SELECTOR, ".results-table"))  # Highlight the element
+        return new_content != old_content
+
+    # Wait for the content to update
+    WebDriverWait(driver, 10).until(content_has_updated)
 
     # Refresh the dropdowns
     dropdowns = WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".MuiFormControl-root.css-vc1rr1")))
-
+    driver.execute_script("arguments[0].style.border='3px solid red'", dropdowns[-1])  # Highlight the element
     # Select the second dropdown
     dropdown = dropdowns[1]
+    old_content = driver.find_element(By.CSS_SELECTOR, ".results-table").get_attribute('innerHTML')
     dropdown.click()
+
+    WebDriverWait(driver, 10).until(content_has_updated)
 
     # Wait for the dropdown menu to open and then select 'RTX 4090'
     rtx_4090_option = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "li[data-value='RTX 4090']")))
     driver.execute_script("arguments[0].style.border='3px solid red'", rtx_4090_option)  # Highlight the element
-    # time.sleep(1)
-    rtx_4090_option.click()
-    # time.sleep(5)
+    old_content = driver.find_element(By.CSS_SELECTOR, ".results-table").get_attribute('innerHTML')
 
-    # Wait for the page to update after selecting the dropdown value
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".machine-row")))
-    driver.execute_script("arguments[0].style.border='3px solid red'", driver.find_element(By.CSS_SELECTOR, ".machine-row"))  # Highlight the element
+    rtx_4090_option.click()
+    # Wait for the content to update
+    WebDriverWait(driver, 10).until(content_has_updated)
 
     # Get the HTML of the webpage
     html = driver.page_source

@@ -1,6 +1,7 @@
 import schedule
 import time
 from Scrappers.Utilidades import *
+import concurrent.futures
 
 # URLs to scrape
 urls = [
@@ -19,11 +20,16 @@ def job_vastai():
     print("Vastai scraping done.")
 
 def job_pccomponentes():
-    for url in urls:
+    def process_url(url):
         print(f"Starting Pccomponentes scraping for {url}...")
         data = scrape_pccomponentes(url)
         subir_datos(data)
         print(f"Pccomponentes scraping done for {url}.")
+
+    # Create a ThreadPoolExecutor
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        # Process each URL in parallel
+        executor.map(process_url, urls)
 
 def job_luz():
     print("Starting Luz scraping...")
@@ -38,23 +44,23 @@ def job_wallapop():
     print("Wallapop scraping done.")
 
 def main():
-    # Run the jobs once immediately
-    job_vastai()
-    job_pccomponentes()
-    job_luz()
-    job_wallapop()
-    
+    # Create a ThreadPoolExecutor
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        # Run the jobs once immediately
+        executor.submit(job_vastai)
+        # executor.submit(job_pccomponentes)
+        # executor.submit(job_luz)
+        # executor.submit(job_wallapop)
 
-    # Schedule the jobs
-    schedule.every(2.5).minutes.do(job_vastai)
-    # schedule.every().day.at("19:00").do(job_pccomponentes)
-    schedule.every(15).minutes.do(job_pccomponentes)
-    schedule.every(15).minutes.do(job_wallapop)
-    schedule.every().hour.do(job_luz)  # Schedule job_luz to run every hour
+        # Schedule the jobs
+        schedule.every(2.5).minutes.do(executor.submit, job_vastai)
+        schedule.every(15).minutes.do(executor.submit, job_pccomponentes)
+        schedule.every(15).minutes.do(executor.submit, job_wallapop)
+        schedule.every().hour.do(executor.submit, job_luz)
 
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+        while True:
+            schedule.run_pending()
+            time.sleep(1)
 
 if __name__ == "__main__":
     main()
