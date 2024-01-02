@@ -2,6 +2,8 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
+
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta, timezone
 import requests
@@ -12,8 +14,13 @@ import time
 from selenium.webdriver.chrome.options import Options
 options = Options()
 options.add_argument("--headless")
+options.add_argument("--disable-gpu")
+options.add_argument("--no-sandbox")
+options.add_argument("enable-automation")
+options.add_argument("--disable-infobars")
+options.add_argument("--disable-dev-shm-usage")
 options.add_argument("window-size=1400,1500")
-options.add_argument("user-agent=Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:15.0) Gecko/20100101 Firefox/15.0.1")
+options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537")
 
 def scrape_pccomponentes(url):
     # Parse the URL to get the component type
@@ -33,39 +40,33 @@ def scrape_pccomponentes(url):
     wait = WebDriverWait(driver, 10)
     
 
-    # Try to locate the cookie notice by its XPath and click on it if it exists
-    print("     - Esperando cookies...")
-    try:
-        cookie_notice = wait.until(EC.element_to_be_clickable((By.ID, 'cookiesAcceptAll')))
-        cookie_notice.click()
-        print("     - Cookies aceptadas.")
-    except:
-        print("     - No hay cookies.")
-        pass
+    # # Try to locate the cookie notice by its XPath and click on it if it exists
+    # print("     - Esperando cookies...")
+    # try:
+    #     cookie_notice = WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.ID, 'cookiesAcceptAll')))
+    #     driver.execute_script("arguments[0].style.border='3px solid red'", cookie_notice)  # Highlight the element
+    #     cookie_notice.click()
+    #     print("     - Cookies aceptadas.")
+    # except:
+    #     print("     - No hay cookies.")
+    #     pass
 
     # Wait for the product grid to be present
-    products = wait.until(EC.visibility_of_all_elements_located((By.ID, 'product-grid')))
+    product_grid = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, 'product-grid')))
+    driver.execute_script("arguments[0].style.border='3px solid red'", product_grid)  # Highlight the element
+    
+
+    # Select all div children of the product grid
+    products = product_grid.find_elements(By.TAG_NAME, 'a')
 
     # Initialize an empty list to store the product data
     product_list = []
-
     # Loop through each product
 
     for product in products:
-        # Extract the product name and price using XPath selectors
-        product_name = product.find_element(By.XPATH, './/div/div[1]/div[2]/h3').text
-        product_price_text = product.find_element(By.XPATH, './/div/div[1]/div[2]/div[1]').text
-
-        # Split the price string into lines, replace the comma with a dot, remove non-digit characters and convert to float
-        price_list = [float(price.replace('.','').replace('€', '').replace(',', '.')) for price in product_price_text.split('\n') if price]
-
-        # If there's more than one price, select the lowest one
-        if len(price_list) > 1:
-            product_price = min(price_list)
-        elif price_list:
-            product_price = price_list[0]
-        else:
-            product_price = None  # Or some default value
+        # Extract the product name and price from the data attributes
+        product_name = product.get_attribute('data-product-name')
+        product_price = float(product.get_attribute('data-product-price'))
 
         # Save the product name and price in a dictionary and append it to the list
         product_list.append({"Nombre": product_name, "Precio": product_price})
@@ -85,23 +86,22 @@ def scrape_vastai():
 
     # Go to the URL
     driver.get(url)
-
-    # Wait for the page to load
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".machine-row")))
-
     # Wait for the dropdowns to be present
     dropdowns = WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".MuiFormControl-root.css-vc1rr1")))
 
     # Select the last dropdown
     dropdown = dropdowns[-1]
+    driver.execute_script("arguments[0].style.border='3px solid red'", dropdown)  # Highlight the element
+
+    # Wait until the overlaying element is no longer present or visible
+    WebDriverWait(driver, 10).until_not(EC.presence_of_element_located((By.CSS_SELECTOR, ".MuiBackdrop-root.MuiBackdrop-invisible.MuiModal-backdrop.css-esi9ax")))
+
     dropdown.click()
 
-    # Wait for the dropdown menu to open and then select 'Price(inc.)'
-    price_inc_option = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//li[@data-value='price-asc']")))
+     # Wait for the dropdown menu to open and then select 'Price(inc.)'
+    price_inc_option = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "li[data-value='price-asc']")))
+    driver.execute_script("arguments[0].style.border='3px solid red'", price_inc_option)  # Highlight the element
     price_inc_option.click()
-
-    # Wait for the page to update after selecting the dropdown value
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".machine-row")))
 
     # Refresh the dropdowns
     dropdowns = WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".MuiFormControl-root.css-vc1rr1")))
@@ -111,10 +111,15 @@ def scrape_vastai():
     dropdown.click()
 
     # Wait for the dropdown menu to open and then select 'RTX 4090'
-    rtx_4090_option = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//li[@data-value='RTX 4090']")))
-    time.sleep(1)
+    rtx_4090_option = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "li[data-value='RTX 4090']")))
+    driver.execute_script("arguments[0].style.border='3px solid red'", rtx_4090_option)  # Highlight the element
+    # time.sleep(1)
     rtx_4090_option.click()
-    time.sleep(5)
+    # time.sleep(5)
+
+    # Wait for the page to update after selecting the dropdown value
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".machine-row")))
+    driver.execute_script("arguments[0].style.border='3px solid red'", driver.find_element(By.CSS_SELECTOR, ".machine-row"))  # Highlight the element
 
     # Get the HTML of the webpage
     html = driver.page_source
