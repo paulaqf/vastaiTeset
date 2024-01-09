@@ -56,7 +56,7 @@ def job_wallapop():
 def main():
     # Create a ThreadPoolExecutor
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        Run the jobs once immediately
+        # Run the jobs once immediately
         executor.submit(job_vastai)
         executor.submit(job_pccomponentes, True)
         executor.submit(job_luz)
