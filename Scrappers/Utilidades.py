@@ -2,7 +2,8 @@ from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
+# from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.firefox.options import Options
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta, timezone
 import requests
@@ -14,7 +15,7 @@ options = Options()
 # options.add_argument("--headless")
 options.add_argument("--disable-gpu")
 options.add_argument("--no-sandbox")
-options.add_argument("enable-automation")
+# options.add_argument("enable-automation")
 options.add_argument("--disable-infobars")
 options.add_argument("--disable-dev-shm-usage")
 options.add_argument("window-size=1400,1500")
@@ -28,10 +29,10 @@ def scrape_pccomponentes(url):
     print(f"Scraping {component_type}...")
 
     # Initialize the webdriver
-    driver = webdriver.Chrome(options=options)  # Make sure you have the Firefox driver in your PATH
+    driver = webdriver.Firefox(options=options)
 
     # Navigate to the new URL
-    print("     - Opening browser...")
+    print(f"     - Opening browser {component_type}...")
     driver.get(url)
 
     # Wait until the page is fully loaded
@@ -53,11 +54,14 @@ def scrape_pccomponentes(url):
     product_grid = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, 'product-grid')))
     driver.execute_script("arguments[0].style.border='3px solid red'", product_grid)  # Highlight the element
     
-    driver.quit()
-    print("     - Browser closed.")
+    
+    print(f"     - Browser {component_type} closed.")
+
+    print("     - Extrayendo datos...")
 
     # Select all div children of the product grid
     products = product_grid.find_elements(By.TAG_NAME, 'a')
+    print(f"     - {len(products)} productos encontrados.")
 
     # Initialize an empty list to store the product data
     product_list = []
@@ -70,94 +74,15 @@ def scrape_pccomponentes(url):
 
         # Save the product name and price in a dictionary and append it to the list
         product_list.append({"Nombre": product_name, "Precio": product_price})
+    print(product_list)
+
+    driver.quit()
 
     return {component_type: product_list}
 
 
-def scrape_vastai():
-    # Define the URL of the webpage
-    url = "https://cloud.vast.ai/"
-    # Create a new instance of the Firefox driver
-    print("Opening browser...")
-    driver = webdriver.Chrome(options=options)
-
-    # Go to the URL
-    driver.get(url)
-    # Wait for the dropdowns to be present
-    dropdowns = WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".MuiFormControl-root.css-vc1rr1")))
-
-    # Esperar a que se carguen las máquinas
-    WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".results-table")))
-    driver.execute_script("arguments[0].style.border='3px solid red'", driver.find_element(By.CSS_SELECTOR, ".results-table"))  # Highlight the element
-
-    # Select the last dropdown
-    dropdown = dropdowns[-1]
-    driver.execute_script("arguments[0].style.border='3px solid red'", dropdown)  # Highlight the element
-
-    # Wait until the overlaying element is no longer present or visible
-    WebDriverWait(driver, 10).until_not(EC.presence_of_element_located((By.CSS_SELECTOR, ".MuiBackdrop-root.MuiBackdrop-invisible.MuiModal-backdrop.css-esi9ax")))
-
-    dropdown.click()
-
-     # Wait for the dropdown menu to open and then select 'Price(inc.)'
-    price_inc_option = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "li[data-value='price-asc']")))
-    driver.execute_script("arguments[0].style.border='3px solid red'", price_inc_option)  # Highlight the element
-    old_content = driver.find_element(By.CSS_SELECTOR, ".results-table").get_attribute('innerHTML')
-
-    price_inc_option.click()
-
-    # Define a function that checks if the content of the results-table has changed
-    def content_has_updated(driver):
-        driver.execute_script("arguments[0].style.border='3px solid red'", driver.find_element(By.CSS_SELECTOR, ".results-table"))  # Highlight the element
-        new_content = driver.find_element(By.CSS_SELECTOR, ".results-table").get_attribute('innerHTML')
-        driver.execute_script("arguments[0].style.border='3px solid green'", driver.find_element(By.CSS_SELECTOR, ".results-table"))  # Highlight the element
-        return new_content != old_content
-
-    # Wait for the content to update
-    WebDriverWait(driver, 10).until(content_has_updated)
-
-    # Refresh the dropdowns
-    dropdowns = WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".MuiFormControl-root.css-vc1rr1")))
-    driver.execute_script("arguments[0].style.border='3px solid red'", dropdowns[-1])  # Highlight the element
-    # Select the second dropdown
-    dropdown = dropdowns[1]
-    old_content = driver.find_element(By.CSS_SELECTOR, ".results-table").get_attribute('innerHTML')
-    dropdown.click()
-
-    WebDriverWait(driver, 10).until(content_has_updated)
-
-    # Wait for the dropdown menu to open and then select 'RTX 4090'
-    rtx_4090_option = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "li[data-value='RTX 4090']")))
-    driver.execute_script("arguments[0].style.border='3px solid red'", rtx_4090_option)  # Highlight the element
-    old_content = driver.find_element(By.CSS_SELECTOR, ".results-table").get_attribute('innerHTML')
-
-    rtx_4090_option.click()
-    # Wait for the content to update
-    WebDriverWait(driver, 10).until(content_has_updated)
-
-    # Get the HTML of the webpage
-    html = driver.page_source
-
-    # Create a BeautifulSoup object with the HTML
-    soup = BeautifulSoup(html, 'html.parser')
-
-    # Find all the div elements with the class 'fixed-layout' in the BeautifulSoup object
-    fixed_layouts = soup.find_all('div', class_='fixed-layout')
-
-    # Define the keys for the dictionary
-    keys = ["Localization", "GPU", "TFLOPs", "MachineID", "HOST", "Verified", "VRAM", "GPUSpeed", "Motherboard", "PCIeSpeed", "PCIe", "CPU", "CPUSpeed", "RAM", "Disk", "DiskSize", "DiskSpeed", "UploadSpeed", "DownloadSpeed", "Ports", "DLPerf", "MaxCUDA", "Price"]
-
-    # For each fixed layout, find all child divs with the class 'abspos popover-container', find the 'button-hover' div, extract the text from its child 'abspos MuiBox-root css-0' div, and create a dictionary
-    data = [dict(zip(keys, [div.text.strip() for div in fixed_layout.find_all('div', class_='abspos popover-container')] + [round(float(fixed_layout.find_next_sibling('div', class_='button-hover').find('div', class_='abspos MuiBox-root css-0').text.strip().replace('$', '').replace('/hr', '')), 3)])) for fixed_layout in fixed_layouts]
-    #
-    print("Closing browser...")
-    driver.quit()
-    return {"maquinas": data}
-
-def scrape_wallapop():
-    url = "https://es.wallapop.com/app/search?filters_source=quick_filters&keywords=rtx%204090&latitude=40.96427&longitude=-5.66385&order_by=price_low_to_high&min_sale_price=1250"
-
-    driver = webdriver.Chrome(options=options)
+def scrape_wallapop(url, producto_buscar):
+    driver = webdriver.Firefox(options=options)
     driver.get(url)
 
     wait = WebDriverWait(driver, 10)
@@ -182,19 +107,97 @@ def scrape_wallapop():
         except:
             product_reserved = False
 
-        if "4090" in product_name and not product_reserved:
+        if producto_buscar in product_name and not product_reserved:
             product_list.append({"Nombre": product_name, "Precio": product_price})
 
     driver.quit()
 
     return {"GPU-wallapop": product_list}
 
+
+def scrape_vastai():
+
+
+    # Define the URL of the webpage
+    url = "https://cloud.vast.ai/"
+    # Create a new instance of the Firefox driver
+    print("  -Opening Vastai browser...")
+    driver = webdriver.Firefox(options=options)
+
+    # Go to the URL
+    driver.get(url)
+    # Wait for the dropdowns to be present
+    dropdowns = WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".MuiFormControl-root.css-vc1rr1")))
+    time.sleep(5)
+    # Esperar a que se carguen las máquinas
+    WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".results-table")))
+    # driver.execute_script("arguments[0].style.border='3px solid red'",driver.find_element(By.CSS_SELECTOR, ".results-table"))  # Highlight the element
+
+
+    # Select the last dropdown
+    dropdown = dropdowns[-1]
+    driver.execute_script("arguments[0].style.border='3px solid red'", dropdown)  # Highlight the element
+
+    # Wait until the overlaying element is no longer present or visible
+    WebDriverWait(driver, 10).until_not(EC.presence_of_element_located((By.CSS_SELECTOR, ".MuiBackdrop-root.MuiBackdrop-invisible.MuiModal-backdrop.css-esi9ax")))
+
+    dropdown.click()
+     # Wait for the dropdown menu to open and then select 'Price(inc.)'
+    price_inc_option = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "li[data-value='price-asc']")))
+    driver.execute_script("arguments[0].style.border='3px solid red'", price_inc_option)  # Highlight the element
+
+    price_inc_option.click()
+    driver.execute_script("arguments[0].style.border='3px solid green'", price_inc_option)  # Highlight the element
+
+
+
+    # Refresh the dropdowns
+    dropdowns = WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, ".MuiFormControl-root.css-vc1rr1")))
+    # Select the second dropdown
+    dropdown = dropdowns[1]
+    driver.execute_script("arguments[0].style.border='3px solid red'", dropdown)  # Highlight the element
+
+    time.sleep(2)
+    dropdown.click()
+    driver.execute_script("arguments[0].style.border='3px solid green'", dropdown)  # Highlight the element
+
+
+    # Wait for the dropdown menu to open and then select 'RTX 4090'
+    rtx_4090_option = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "li[data-value='RTX 4090']")))
+    driver.execute_script("arguments[0].style.border='3px solid red'", rtx_4090_option)  # Highlight the element
+
+
+    rtx_4090_option.click()
+    # Wait for the content to update
+    time.sleep(3)
+
+    # Get the HTML of the webpage
+    html = driver.page_source
+
+    # Create a BeautifulSoup object with the HTML
+    soup = BeautifulSoup(html, 'html.parser')
+
+    # Find all the div elements with the class 'fixed-layout' in the BeautifulSoup object
+    fixed_layouts = soup.find_all('div', class_='fixed-layout')
+
+    # Define the keys for the dictionary
+    keys = ["Localization", "GPU", "TFLOPs", "MachineID", "HOST", "Verified", "VRAM", "GPUSpeed", "Motherboard", "PCIeSpeed", "PCIe", "CPU", "CPUSpeed", "RAM", "Disk", "DiskSize", "DiskSpeed", "UploadSpeed", "DownloadSpeed", "Ports", "DLPerf", "MaxCUDA", "Price"]
+
+    # For each fixed layout, find all child divs with the class 'abspos popover-container', find the 'button-hover' div, extract the text from its child 'abspos MuiBox-root css-0' div, and create a dictionary
+    data = [dict(zip(keys, [div.text.strip() for div in fixed_layout.find_all('div', class_='abspos popover-container')] + [round(float(fixed_layout.find_next_sibling('div', class_='button-hover').find('div', class_='abspos MuiBox-root css-0').text.strip().replace('$', '').replace('/hr', '')), 3)])) for fixed_layout in fixed_layouts]
+    #
+    print("Closing browser...")
+    driver.quit()
+    return {"maquinas": data}
+
+
+
 def scrape_luz():
     # Define the URL of the webpage
     url = "https://tarifaluzhora.es/"
 
     # Initialize the webdriver
-    driver = webdriver.Chrome(options=options)  # Make sure you have the Firefox driver in your PATH
+    driver = webdriver.Firefox(options=options)
 
     # Navigate to the URL
     driver.get(url)
