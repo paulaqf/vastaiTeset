@@ -47,13 +47,13 @@ def main():
     # Create a ThreadPoolExecutor
     with concurrent.futures.ThreadPoolExecutor() as executor:
         # Run the jobs once immediately
-        executor.submit(job_vastai)
+        job_vastai()
         # executor.submit(job_pccomponentes)
         # executor.submit(job_luz)
         # executor.submit(job_wallapop)
 
         # Schedule the jobs
-        schedule.every(2.5).minutes.do(executor.submit, job_vastai)
+        schedule.every(2.5).minutes.do(job_vastai)
         schedule.every(15).minutes.do(executor.submit, job_pccomponentes)
         schedule.every(15).minutes.do(executor.submit, job_wallapop)
         schedule.every().hour.do(executor.submit, job_luz)

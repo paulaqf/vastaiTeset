@@ -11,7 +11,7 @@ from urllib.parse import urlparse, unquote
 import time
 
 options = Options()
-options.add_argument("--headless")
+# options.add_argument("--headless")
 options.add_argument("--disable-gpu")
 options.add_argument("--no-sandbox")
 options.add_argument("enable-automation")
@@ -53,6 +53,8 @@ def scrape_pccomponentes(url):
     product_grid = WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.ID, 'product-grid')))
     driver.execute_script("arguments[0].style.border='3px solid red'", product_grid)  # Highlight the element
     
+    driver.quit()
+    print("     - Browser closed.")
 
     # Select all div children of the product grid
     products = product_grid.find_elements(By.TAG_NAME, 'a')
@@ -68,9 +70,6 @@ def scrape_pccomponentes(url):
 
         # Save the product name and price in a dictionary and append it to the list
         product_list.append({"Nombre": product_name, "Precio": product_price})
-
-    driver.quit()
-    print("     - Browser closed.")
 
     return {component_type: product_list}
 
