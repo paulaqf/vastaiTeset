@@ -18,17 +18,23 @@ urls_wallapop = [
 ]
 
 def job_vastai(gpu):
-    print("Starting Vastai scraping on " + gpu +"...")
-    data = scrape_vastai(gpu)
-    subir_datos(data)
-    print("Vastai scraping done.")
+    try:
+        print("Starting Vastai scraping on " + gpu +"...")
+        data = scrape_vastai(gpu)
+        subir_datos(data)
+        print("Vastai scraping done.")
+    except Exception as e:
+        print(f"An error occurred in job_vastai: {e}")
 
 def job_pccomponentes(parallel_execution):
     def process_url(url):
-        print(f"Starting Pccomponentes scraping for {url}...")
-        data = scrape_pccomponentes(url)
-        subir_datos(data)
-        print(f"Pccomponentes scraping done for {url}.")
+        try:
+            print(f"Starting Pccomponentes scraping for {url}...")
+            data = scrape_pccomponentes(url)
+            subir_datos(data)
+            print(f"Pccomponentes scraping done for {url}.")
+        except Exception as e:
+            print(f"An error occurred in process_url for {url}: {e}")
 
     if parallel_execution:
         # Create a ThreadPoolExecutor
@@ -41,17 +47,23 @@ def job_pccomponentes(parallel_execution):
             process_url(url)
 
 def job_luz():
-    print("Starting Luz scraping...")
-    data = scrape_luz()
-    subir_datos(data)
-    print("Luz scraping done.")
+    try:
+        print("Starting Luz scraping...")
+        data = scrape_luz()
+        subir_datos(data)
+        print("Luz scraping done.")
+    except Exception as e:
+        print(f"An error occurred in job_luz: {e}")
 
 def job_wallapop():
-    print("Starting Wallapop scraping...")
-    for url, product in urls_wallapop:
-        data = scrape_wallapop(url, product)
-        subir_datos(data)
-    print("Wallapop scraping done.")
+    try:
+        print("Starting Wallapop scraping...")
+        for url, product in urls_wallapop:
+            data = scrape_wallapop(url, product)
+            subir_datos(data)
+        print("Wallapop scraping done.")
+    except Exception as e:
+        print(f"An error occurred in job_wallapop: {e}")
 
 def main():
     # Run the jobs once immediately
