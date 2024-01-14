@@ -1,6 +1,7 @@
 import schedule
 import time
 from Scrappers.Utilidades import *
+import concurrent.futures
 
 # URLs to scrape
 urls_pccomponentes = [
@@ -16,9 +17,9 @@ urls_wallapop = [
     {"https://es.wallapop.com/app/search?filters_source=quick_filters&keywords=rtx%204090&latitude=40.96427&longitude=-5.66385&order_by=price_low_to_high&min_sale_price=1250", "4090"},
 ]
 
-def job_vastai():
-    print("Starting Vastai scraping...")
-    data = scrape_vastai()
+def job_vastai(gpu):
+    print("Starting Vastai scraping on " + gpu +"...")
+    data = scrape_vastai(gpu)
     subir_datos(data)
     print("Vastai scraping done.")
 
@@ -53,21 +54,25 @@ def job_wallapop():
     print("Wallapop scraping done.")
 
 def main():
-    # Run the jobs once immediately
-    job_vastai()
-    job_pccomponentes(True)
-    job_luz()
-    job_wallapop()
+    # Create a ThreadPoolExecutor
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        # Run the jobs once immediately
+        executor.submit(job_vastai("4090"))
+        executor.submit(job_vastai("3090"))
+        executor.submit(job_pccomponentes, True)
+        executor.submit(job_luz)
+        executor.submit(job_wallapop)
 
-    # Schedule the jobs
-    schedule.every(2.5).minutes.do(job_vastai)
-    schedule.every(10).minutes.do(job_pccomponentes, True)
-    schedule.every(10).minutes.do(job_wallapop)
-    schedule.every().hour.do(job_luz)
+        # Schedule the jobs
+        schedule.every(2.5).minutes.do(executor.submit, job_vastai("4090"))
+        schedule.every(2.5).minutes.do(executor.submit, job_vastai("3090"))
+        schedule.every(10).minutes.do(executor.submit, job_pccomponentes)
+        schedule.every(10).minutes.do(executor.submit, job_wallapop)
+        schedule.every().hour.do(executor.submit, job_luz)
 
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+        while True:
+            schedule.run_pending()
+            time.sleep(1)
 
 if __name__ == "__main__":
     main()

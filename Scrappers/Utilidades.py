@@ -12,12 +12,12 @@ from urllib.parse import urlparse, unquote
 import time
 
 options = Options()
-# options.add_argument("--headless")
-options.add_argument("--disable-gpu")
+options.add_argument("--headless")
+# options.add_argument("--disable-gpu")
 options.add_argument("--no-sandbox")
 # options.add_argument("enable-automation")
-options.add_argument("--disable-infobars")
-options.add_argument("--disable-dev-shm-usage")
+# options.add_argument("--disable-infobars")
+# options.add_argument("--disable-dev-shm-usage")
 # options.add_argument("window-size=1400,1500")
 options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537")
 
@@ -115,7 +115,7 @@ def scrape_wallapop(url, producto_buscar):
     return {"GPU-wallapop": product_list}
 
 
-def scrape_vastai():
+def scrape_vastai(gpu):
 
 
     # Define the URL of the webpage
@@ -163,11 +163,15 @@ def scrape_vastai():
 
 
     # Wait for the dropdown menu to open and then select 'RTX 4090'
-    rtx_4090_option = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "li[data-value='RTX 4090']")))
-    driver.execute_script("arguments[0].style.border='3px solid red'", rtx_4090_option)  # Highlight the element
+    GPU_option = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "li[data-value='RTX " + gpu + "']")))
+    driver.execute_script("arguments[0].style.border='3px solid red'", GPU_option)  # Highlight the element
 
+    # Wait for the element to be clickable
+    WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "li[data-value='RTX " + gpu + "']")))
+    driver.execute_script("arguments[0].style.border='3px solid yellow'", GPU_option)  # Highlight the element
 
-    rtx_4090_option.click()
+    driver.execute_script("arguments[0].click();", GPU_option)
+    driver.execute_script("arguments[0].style.border='3px solid green'", GPU_option)  # Highlight the element
     # Wait for the content to update
     time.sleep(3)
 
