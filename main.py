@@ -54,25 +54,26 @@ def job_wallapop():
     print("Wallapop scraping done.")
 
 def main():
-    # Create a ThreadPoolExecutor
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        # Run the jobs once immediately
-        executor.submit(job_vastai("4090"))
-        executor.submit(job_vastai("3090"))
-        executor.submit(job_pccomponentes, True)
-        executor.submit(job_luz)
-        executor.submit(job_wallapop)
+    # Run the jobs once immediately
+    job_vastai("4090")
+    job_vastai("3090")
+    job_pccomponentes(True)
+    job_luz()
+    job_wallapop()
 
-        # Schedule the jobs
-        schedule.every(2.5).minutes.do(executor.submit, job_vastai("4090"))
-        schedule.every(2.5).minutes.do(executor.submit, job_vastai("3090"))
-        schedule.every(10).minutes.do(executor.submit, job_pccomponentes)
-        schedule.every(10).minutes.do(executor.submit, job_wallapop)
-        schedule.every().hour.do(executor.submit, job_luz)
+    # Schedule the jobs
+    schedule.every(2.5).minutes.do(job_vastai, "4090")
+    schedule.every(2.5).minutes.do(job_vastai, "3090")
+    schedule.every(10).minutes.do(job_pccomponentes, True)
+    schedule.every(10).minutes.do(job_wallapop)
+    schedule.every().hour.do(job_luz)
 
-        while True:
-            schedule.run_pending()
-            time.sleep(1)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+if __name__ == "__main__":
+    main()
 
 if __name__ == "__main__":
     main()
