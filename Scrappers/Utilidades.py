@@ -116,8 +116,6 @@ def scrape_wallapop(url, producto_buscar):
 
 
 def scrape_vastai(gpu):
-
-
     # Define the URL of the webpage
     url = "https://cloud.vast.ai/"
     # Create a new instance of the Firefox driver
@@ -141,12 +139,13 @@ def scrape_vastai(gpu):
     # Wait until the overlaying element is no longer present or visible
     WebDriverWait(driver, 10).until_not(EC.presence_of_element_located((By.CSS_SELECTOR, ".MuiBackdrop-root.MuiBackdrop-invisible.MuiModal-backdrop.css-esi9ax")))
 
+    # driver.execute_script("arguments[0].click();", dropdown)
     dropdown.click()
      # Wait for the dropdown menu to open and then select 'Price(inc.)'
     price_inc_option = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, "li[data-value='price-asc']")))
     driver.execute_script("arguments[0].style.border='3px solid red'", price_inc_option)  # Highlight the element
 
-    price_inc_option.click()
+    driver.execute_script("arguments[0].click();", price_inc_option)
     driver.execute_script("arguments[0].style.border='3px solid green'", price_inc_option)  # Highlight the element
 
 
@@ -158,6 +157,7 @@ def scrape_vastai(gpu):
     driver.execute_script("arguments[0].style.border='3px solid red'", dropdown)  # Highlight the element
 
     time.sleep(2)
+    # driver.execute_script("arguments[0].click();", dropdown)
     dropdown.click()
     driver.execute_script("arguments[0].style.border='3px solid green'", dropdown)  # Highlight the element
 
