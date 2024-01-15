@@ -65,7 +65,8 @@ def job_wallapop():
     try:
         print("Starting Wallapop scraping...")
         for url, product in urls_wallapop:
-            data = scrape_wallapop(url, product)
+            print(f"Scraping {product} from {url}")
+            data = scrape_wallapop(url)
             subir_datos(data)
             # Clean up data after it's been uploaded
             data = None
