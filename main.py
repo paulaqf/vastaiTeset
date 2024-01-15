@@ -80,18 +80,18 @@ def job_wallapop():
 
 def main():
     # Run the jobs once immediately
-    # job_vastai("4090")
-    # job_vastai("3090")
-    # job_pccomponentes(True)
-    # job_luz()
+    job_vastai("4090")
+    job_vastai("3090")
+    job_pccomponentes(True)
+    job_luz()
     job_wallapop()
 
-    # # Schedule the jobs
-    # schedule.every(2.5).minutes.do(job_vastai, "4090")
-    # schedule.every(2.5).minutes.do(job_vastai, "3090")
-    # schedule.every(30).minutes.do(job_pccomponentes, True)
-    # schedule.every(30).minutes.do(job_wallapop)
-    # schedule.every().hour.do(job_luz)
+    # Schedule the jobs
+    schedule.every(2.5).minutes.do(job_vastai, "4090")
+    schedule.every(2.5).minutes.do(job_vastai, "3090")
+    schedule.every(30).minutes.do(job_pccomponentes, True)
+    schedule.every(30).minutes.do(job_wallapop)
+    schedule.every().hour.do(job_luz)
 
     while True:
         schedule.run_pending()
