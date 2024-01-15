@@ -22,6 +22,8 @@ def job_vastai(gpu):
         print("Starting Vastai scraping on " + gpu +"...")
         data = scrape_vastai(gpu)
         subir_datos(data)
+        # Clean up data after it's been uploaded
+        data = None
         print("Vastai scraping done.")
     except Exception as e:
         print(f"An error occurred in job_vastai: {e}")
@@ -32,6 +34,8 @@ def job_pccomponentes(parallel_execution):
             print(f"Starting Pccomponentes scraping for {url}...")
             data = scrape_pccomponentes(url)
             subir_datos(data)
+            # Clean up data after it's been uploaded
+            data = None
             print(f"Pccomponentes scraping done for {url}.")
         except Exception as e:
             print(f"An error occurred in process_url for {url}: {e}")
@@ -51,6 +55,8 @@ def job_luz():
         print("Starting Luz scraping...")
         data = scrape_luz()
         subir_datos(data)
+        # Clean up data after it's been uploaded
+        data = None
         print("Luz scraping done.")
     except Exception as e:
         print(f"An error occurred in job_luz: {e}")
@@ -61,6 +67,8 @@ def job_wallapop():
         for url, product in urls_wallapop:
             data = scrape_wallapop(url, product)
             subir_datos(data)
+            # Clean up data after it's been uploaded
+            data = None
         print("Wallapop scraping done.")
     except Exception as e:
         print(f"An error occurred in job_wallapop: {e}")
@@ -76,16 +84,13 @@ def main():
     # Schedule the jobs
     schedule.every(2.5).minutes.do(job_vastai, "4090")
     schedule.every(2.5).minutes.do(job_vastai, "3090")
-    schedule.every(10).minutes.do(job_pccomponentes, True)
-    schedule.every(10).minutes.do(job_wallapop)
+    schedule.every(30).minutes.do(job_pccomponentes, True)
+    schedule.every(30).minutes.do(job_wallapop)
     schedule.every().hour.do(job_luz)
 
     while True:
         schedule.run_pending()
         time.sleep(1)
-
-if __name__ == "__main__":
-    main()
 
 if __name__ == "__main__":
     main()

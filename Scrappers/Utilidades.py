@@ -10,6 +10,7 @@ import requests
 import json
 from urllib.parse import urlparse, unquote
 import time
+import gc
 
 options = Options()
 options.add_argument("--headless")
@@ -77,6 +78,7 @@ def scrape_pccomponentes(url):
     print(product_list)
 
     driver.quit()
+    gc.collect()
 
     return {component_type: product_list}
 
@@ -111,6 +113,7 @@ def scrape_wallapop(url, producto_buscar):
             product_list.append({"Nombre": product_name, "Precio": product_price})
 
     driver.quit()
+    gc.collect()
 
     return {"GPU-wallapop": product_list}
 
@@ -192,6 +195,8 @@ def scrape_vastai(gpu):
     #
     print("Closing browser...")
     driver.quit()
+    gc.collect()
+
     return {"maquinas": data}
 
 
@@ -230,6 +235,7 @@ def scrape_luz():
     # Get the current time in UTC+1
     timestamp = datetime.now(utc_plus_one).isoformat()
     luz = {"precio": price, "timestamp": timestamp}
+    gc.collect()
 
     return {"luz": luz}
 
@@ -255,6 +261,7 @@ def subir_datos(data):
         print("Data sent successfully")
     else:
         print("Failed to send data, status code:", response.status_code)
+    gc.collect()
 
 
 
