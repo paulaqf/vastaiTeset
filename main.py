@@ -14,7 +14,7 @@ urls_pccomponentes = [
 ]
 
 urls_wallapop = [
-    {"https://es.wallapop.com/app/search?filters_source=quick_filters&keywords=rtx%204090&latitude=40.96427&longitude=-5.66385&order_by=price_low_to_high&min_sale_price=1250", "4090"},
+    "https://es.wallapop.com/app/search?filters_source=quick_filters&keywords=rtx%204090&latitude=40.96427&longitude=-5.66385&order_by=price_low_to_high&min_sale_price=1250",
 ]
 
 def job_vastai(gpu):
@@ -64,12 +64,16 @@ def job_luz():
 def job_wallapop():
     try:
         print("Starting Wallapop scraping...")
-        for url, product in urls_wallapop:
-            print(f"Scraping {product} from {url}")
-            data = scrape_wallapop(url, product)
-            subir_datos(data)
-            # Clean up data after it's been uploaded
-            data = None
+        # for url, product in urls_wallapop:
+        #     print(f"Scraping {product} from {url}")
+        #     data = scrape_wallapop(url, product)
+        #     subir_datos(data)
+        #     # Clean up data after it's been uploaded
+        #     data = None
+        data = scrape_wallapop(urls_wallapop[0], "4090")
+        subir_datos(data)
+        # Clean up data after it's been uploaded
+        data = None
         print("Wallapop scraping done.")
     except Exception as e:
         print(f"An error occurred in job_wallapop: {e}")
